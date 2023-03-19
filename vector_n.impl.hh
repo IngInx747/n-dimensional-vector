@@ -14,10 +14,6 @@
 #include <utility> // std::index_sequence
 
 template <typename T, size_t N, size_t... I>
-inline VectorN<T, N> op_impl_set(const T &s, std::index_sequence<I...>)
-{ using _ = int[]; VectorN<T, N> p {}; (void)_{ (p[I] = s, 0)... }; return p; }
-
-template <typename T, size_t N, size_t... I>
 inline VectorN<T, N> op_impl_neg(const VectorN<T, N> &p, std::index_sequence<I...>)
 { return { (-p[I])... }; }
 
@@ -54,7 +50,15 @@ inline VectorN<T, N> op_impl_div(const VectorN<T, N> &p, const T &s, std::index_
 { return { (p[I] / s)... }; } // to optimize for large size
 
 template <typename T, size_t N, size_t... I>
-inline T op_impl_sum(const VectorN<T, N> &p, std::index_sequence<I...>)
+inline VectorN<T, N> op_impl_set(const T &s, std::index_sequence<I...>)
+{ return { (s + (T)0 * I)... }; }
+
+template <typename T, size_t N, size_t M, size_t... I>
+inline VectorN<T, N> op_impl_set(const VectorN<T, M> &p, std::index_sequence<I...>)
+{ return { (I < M ? p[I] : (T)0)... }; }
+
+template <typename T, size_t N, size_t... I>
+inline T op_impl_rdc(const VectorN<T, N> &p, std::index_sequence<I...>)
 #ifdef ENABLED_CPP_STD_17
 { return ((p[I]) + ...); }
 #else
@@ -93,30 +97,6 @@ inline Stream &op_impl_out(Stream &os, const VectorN<T, N>& p, const char *sep, 
 //inline size_t op_impl_argmin(const VectorN<T, N> &p, std::index_sequence<I...>)
 //{ using _ = int[]; size_t k {}; (void)_{ (k = p[k] > p[I] ? I : k, 0)... }; return k; }
 
-//template <typename T, size_t N, size_t... I>
-//inline VectorN<T, N> op_impl_max(const VectorN<T, N> &a, const VectorN<T, N> &b, std::index_sequence<I...>)
-//{ return { std::max(a[I], b[I])... }; }
-
-//template <typename T, size_t N, size_t... I>
-//inline VectorN<T, N> op_impl_min(const VectorN<T, N> &a, const VectorN<T, N> &b, std::index_sequence<I...>)
-//{ return { std::min(a[I], b[I])... }; }
-
-//template <typename T, size_t N, size_t... I>
-//inline VectorN<T, N> op_impl_abs(const VectorN<T, N> &p, std::index_sequence<I...>)
-//{ return { std::abs(p[I])... }; }
-
-//template <typename T, size_t N, size_t... I>
-//inline VectorN<T, N> op_impl_pow(const VectorN<T, N> &p, const T &s, std::index_sequence<I...>)
-//{ return { std::pow(p[I], s)... }; }
-
-//template <typename T, size_t N, size_t... I>
-//inline VectorN<T, N> op_impl_exp(const VectorN<T, N> &p, std::index_sequence<I...>)
-//{ return { std::exp(p[I])... }; }
-
-//template <typename T, size_t N, size_t... I>
-//inline VectorN<T, N> op_impl_log(const VectorN<T, N> &p, std::index_sequence<I...>)
-//{ return { std::log(p[I])... }; }
-
 ////////////////////////////////////////////////////////////////
 /// Nd vector utilities
 ////////////////////////////////////////////////////////////////
@@ -141,9 +121,9 @@ template <typename T, size_t N, size_t... I>
 inline T op_impl_rdc(const VectorN<T, N> &p, T (*fun)(T, T), T init, std::index_sequence<I...>)
 { using _ = int[]; T r { init }; (void)_{ (r = fun(r, p[I]), 0)... }; return r; }
 
-template <typename T, size_t N, size_t... I>
-inline size_t op_impl_arg(const VectorN<T, N> &p, bool (*cmp)(T, T), std::index_sequence<I...>)
-{ using _ = int[]; size_t k {}; (void)_{ (k = cmp(p[k], p[I]) ? I : k, 0)... }; return k; }
+template <typename T, size_t N, typename R, size_t... I>
+inline R op_impl_rdc(const VectorN<T, N> &p, T (*fun)(R, T), R init, std::index_sequence<I...>)
+{ using _ = int[]; R r { init }; (void)_{ (r = fun(r, p[I]), 0)... }; return r; }
 
 template <typename T, size_t N, size_t... I>
 inline T op_impl_dot(const VectorN<T, N> &a, const VectorN<T, N> &b, T (*fun)(T, T), std::index_sequence<I...>)
@@ -152,6 +132,14 @@ inline T op_impl_dot(const VectorN<T, N> &a, const VectorN<T, N> &b, T (*fun)(T,
 template <typename T, size_t N, size_t... I>
 inline T op_impl_dot(const VectorN<T, N> &a, const VectorN<T, N> &b, T (*fun)(T, T, T), T init, std::index_sequence<I...>)
 { using _ = int[]; T r { init }; (void)_{ (r = fun(r, a[I], b[I]), 0)... }; return r; }
+
+template <typename T, size_t N, typename R, size_t... I>
+inline R op_impl_dot(const VectorN<T, N> &a, const VectorN<T, N> &b, T (*fun)(R, T, T), R init, std::index_sequence<I...>)
+{ using _ = int[]; R r { init }; (void)_{ (r = fun(r, a[I], b[I]), 0)... }; return r; }
+
+template <typename T, size_t N, size_t... I>
+inline size_t op_impl_arg(const VectorN<T, N> &p, bool (*cmp)(T, T), std::index_sequence<I...>)
+{ using _ = int[]; size_t k {}; (void)_{ (k = cmp(p[k], p[I]) ? I : k, 0)... }; return k; }
 
 ////////////////////////////////////////////////////////////////
 /// Nd vector Ops
@@ -211,18 +199,11 @@ inline VectorN<T, N> &operator/=(VectorN<T, N> &p, const T &s)
 
 template <typename T, size_t N, typename Indices = std::make_index_sequence<N>>
 inline T sum(const VectorN<T, N> &p)
-{ return op_impl_sum(p, Indices{}); }
+{ return op_impl_rdc(p, Indices{}); }
 
 template <typename T, size_t N, typename Indices = std::make_index_sequence<N>>
 inline T dot(const VectorN<T, N> &a, const VectorN<T, N> &b)
 { return op_impl_dot(a, b, Indices{}); }
-
-////////////////////////////////////////////////////////////////
-/// Nd vector extended Ops
-////////////////////////////////////////////////////////////////
-
-#include <cmath>
-#include <iostream>
 
 template <typename T, size_t N, typename Indices = std::make_index_sequence<N>>
 inline T max(const VectorN<T, N> &p)
@@ -247,6 +228,13 @@ inline VectorN<T, N> max(const VectorN<T, N> &a, const VectorN<T, N> &b)
 template <typename T, size_t N, typename Indices = std::make_index_sequence<N>>
 inline VectorN<T, N> min(const VectorN<T, N> &a, const VectorN<T, N> &b)
 { return op_impl_bop<T, N>(a, b, [] (T x, T y) { return std::min(x, y); }, Indices{}); }
+
+////////////////////////////////////////////////////////////////
+/// Nd vector extended Ops
+////////////////////////////////////////////////////////////////
+
+#include <cmath>
+#include <iostream>
 
 template <typename T, size_t N, typename Indices = std::make_index_sequence<N>>
 inline VectorN<T, N> abs(const VectorN<T, N> &p)
@@ -295,6 +283,10 @@ inline std::ostream &operator<<(std::ostream &os, const VectorN<T, N>& p)
 template <typename T, size_t N, typename Indices = std::make_index_sequence<N>>
 inline VectorN<T, N> make_vector(const T &s)
 { return op_impl_set<T, N>(s, Indices{}); }
+
+template <typename T, size_t N, size_t M, typename Indices = std::make_index_sequence<N>>
+inline VectorN<T, N> make_vector(const VectorN<T, M> &p)
+{ return op_impl_set<T, N, M>(p, Indices{}); }
 
 ////////////////////////////////////////////////////////////////
 /// 3d vector Ops

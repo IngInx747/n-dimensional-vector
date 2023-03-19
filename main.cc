@@ -37,6 +37,8 @@ int main()
     cout << log(exp(a)) << endl;
     cout << normalize(a) << endl;
     cout << make_vector<double, 6>(3.1416) << endl;
+    cout << make_vector<double, 6>(Vec{1,2,3,4}) << endl;
+    cout << make_vector<double, 6>(VectorN<double, 8>{1,2,3,4,5,6,7,8}) << endl;
     a += b; cout << a << endl;
     return 0;
 }
