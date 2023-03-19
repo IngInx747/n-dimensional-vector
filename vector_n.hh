@@ -8,7 +8,7 @@
 template <typename T, size_t N>
 struct VectorN
 {
-	typedef T value_type;
+    typedef T value_type;
 
     static constexpr size_t size() noexcept { return N; }
 
@@ -18,7 +18,7 @@ struct VectorN
     operator const T *() const { return &v[0]; }
     operator T *() { return &v[0]; }
 
-	T v[N] {0};
+    T v[N] {0};
 };
 
 #endif // N_DIMENSIONAL_VECTOR_HH
