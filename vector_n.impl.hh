@@ -1,3 +1,26 @@
+// ======================================================================== //
+// Copyright (c) 2023 Ingram Inxent                                         //
+//                                                                          //
+// Permission is hereby granted, free of charge, to any person obtaining    //
+// a copy of this software and associated documentation files (the          //
+// "Software"), to deal in the Software without restriction, including      //
+// without limitation the rights to use, copy, modify, merge, publish,      //
+// distribute, sublicense, and/or sell copies of the Software, and to       //
+// permit persons to whom the Software is furnished to do so, subject to    //
+// the following conditions:                                                //
+//                                                                          //
+// The above copyright notice and this permission notice shall be           //
+// included in all copies or substantial portions of the Software.          //
+//                                                                          //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,          //
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF       //
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                    //
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE   //
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION   //
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION    //
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.          //
+// ======================================================================== //
+
 #ifndef N_DIMENSIONAL_VECTOR_IMPL_HH
 #define N_DIMENSIONAL_VECTOR_IMPL_HH
 
@@ -105,12 +128,24 @@ template <typename T, size_t N, size_t... I>
 inline VectorN<T, N> op_impl_uop(const VectorN<T, N> &p, T (*fun)(T), std::index_sequence<I...>)
 { return { fun(p[I])... }; }
 
+template <typename T, size_t N, typename R, size_t... I>
+inline VectorN<R, N> op_impl_uop(const VectorN<T, N> &p, R (*fun)(T), std::index_sequence<I...>)
+{ return { fun(p[I])... }; }
+
 template <typename T, size_t N, size_t... I>
 inline VectorN<T, N> op_impl_bop(const VectorN<T, N> &p, const T &s, T (*fun)(T, T), std::index_sequence<I...>)
 { return { fun(p[I], s)... }; }
 
+template <typename T, size_t N, typename R, size_t... I>
+inline VectorN<R, N> op_impl_bop(const VectorN<T, N> &p, const T &s, R (*fun)(T, T), std::index_sequence<I...>)
+{ return { fun(p[I], s)... }; }
+
 template <typename T, size_t N, size_t... I>
 inline VectorN<T, N> op_impl_bop(const VectorN<T, N> &a, const VectorN<T, N> &b, T (*fun)(T, T), std::index_sequence<I...>)
+{ return { fun(a[I], b[I])... }; }
+
+template <typename T, size_t N, typename R, size_t... I>
+inline VectorN<R, N> op_impl_bop(const VectorN<T, N> &a, const VectorN<T, N> &b, R (*fun)(T, T), std::index_sequence<I...>)
 { return { fun(a[I], b[I])... }; }
 
 template <typename T, size_t N, size_t... I>
@@ -122,7 +157,7 @@ inline T op_impl_rdc(const VectorN<T, N> &p, T (*fun)(T, T), T init, std::index_
 { using _ = int[]; T r { init }; (void)_{ (r = fun(r, p[I]), 0)... }; return r; }
 
 template <typename T, size_t N, typename R, size_t... I>
-inline R op_impl_rdc(const VectorN<T, N> &p, T (*fun)(R, T), R init, std::index_sequence<I...>)
+inline R op_impl_rdc(const VectorN<T, N> &p, R (*fun)(R, T), R init, std::index_sequence<I...>)
 { using _ = int[]; R r { init }; (void)_{ (r = fun(r, p[I]), 0)... }; return r; }
 
 template <typename T, size_t N, size_t... I>
@@ -134,7 +169,7 @@ inline T op_impl_dot(const VectorN<T, N> &a, const VectorN<T, N> &b, T (*fun)(T,
 { using _ = int[]; T r { init }; (void)_{ (r = fun(r, a[I], b[I]), 0)... }; return r; }
 
 template <typename T, size_t N, typename R, size_t... I>
-inline R op_impl_dot(const VectorN<T, N> &a, const VectorN<T, N> &b, T (*fun)(R, T, T), R init, std::index_sequence<I...>)
+inline R op_impl_dot(const VectorN<T, N> &a, const VectorN<T, N> &b, R (*fun)(R, T, T), R init, std::index_sequence<I...>)
 { using _ = int[]; R r { init }; (void)_{ (r = fun(r, a[I], b[I]), 0)... }; return r; }
 
 template <typename T, size_t N, size_t... I>
@@ -287,6 +322,14 @@ inline VectorN<T, N> make_vector(const T &s)
 template <typename T, size_t N, size_t M, typename Indices = std::make_index_sequence<N>>
 inline VectorN<T, N> make_vector(const VectorN<T, M> &p)
 { return op_impl_set<T, N, M>(p, Indices{}); }
+
+template <typename T, size_t N, typename Indices = std::make_index_sequence<N>>
+inline VectorN<T, N> make_vector(const VectorN<T, N> &p, T (*fun)(T))
+{ return op_impl_uop<T, N>(p, fun, Indices{}); }
+
+template <typename T, size_t N, typename R, typename Indices = std::make_index_sequence<N>>
+inline VectorN<R, N> make_vector(const VectorN<T, N> &p, R (*fun)(T))
+{ return op_impl_uop<T, N, R>(p, fun, Indices{}); }
 
 ////////////////////////////////////////////////////////////////
 /// 3d vector Ops
