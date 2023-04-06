@@ -24,7 +24,7 @@
 #ifndef N_DIMENSIONAL_VECTOR_IMPL_HH
 #define N_DIMENSIONAL_VECTOR_IMPL_HH
 
-#include "vector_n.hh"
+#include "nvec.hh"
 
 #if __cplusplus >= 201703L
 #define ENABLED_CPP_STD_17

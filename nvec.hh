@@ -46,4 +46,4 @@ struct VectorN
 
 #endif // N_DIMENSIONAL_VECTOR_HH
 
-#include "vector_n.impl.hh"
+#include "nvec.impl.hh"
